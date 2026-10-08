@@ -4,6 +4,6 @@
   "private": true,
   "description": "CavaPasMarcher website production studio",
   "type": "module",
-  "scripts": { "start": "node server/index.js", "dev": "node --watch server/index.js", "test": "node server/smoke-test.js && node server/site-builder-smoke.js && node server/static-audit.js", "audit": "node server/static-audit.js" },
+  "scripts": { "start": "node server/index.js", "dev": "node --watch server/index.js", "test": "node server/smoke-test.js && node server/version-api-smoke.js && node server/site-builder-smoke.js && node server/static-audit.js", "audit": "node server/static-audit.js" },
   "engines": { "node": ">=20" }
 }
