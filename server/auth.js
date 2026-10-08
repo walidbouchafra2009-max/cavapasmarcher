@@ -23,10 +23,10 @@ function purgeExpired() { const now = Date.now(); for (const [token, session] of
 
 export async function register(input = {}) {
   const email = String(input.email || '').trim().toLowerCase(); const password = String(input.password || ''); const name = String(input.name || '').trim();
-  if (!/^\S+@\S+\.\S+$/.test(email)) throw Object.assign(new Error('valid email is required'), { status: 400 });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw Object.assign(new Error('valid email is required'), { status: 400 });
   if (password.length < 10) throw Object.assign(new Error('password must contain at least 10 characters'), { status: 400 });
   const users = await load(); if (users.some((user) => user.email === email)) throw Object.assign(new Error('email already registered'), { status: 409 });
-  const user = { id: randomUUID(), email, name: name || email.split('@')[0], passwordHash: await hash(password), role: 'client', createdAt: new Date().toISOString() };
+  const user = { id: randomUUID(), email, name: name || email.split('@')[0], passwordHash: await hash(password), role: 'agency', createdAt: new Date().toISOString() };
   users.push(user); await save(users); return publicUser(user);
 }
 export async function login(input = {}) {
