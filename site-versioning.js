@@ -6,6 +6,12 @@
   const write = (versions) => localStorage.setItem(key, JSON.stringify(versions.slice(0, 30)));
   const slug = (value) => String(value || 'site').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'site';
   const fingerprint = (generated) => `${generated?.project?.name || ''}|${generated?.html || ''}`;
+  const activeProjectId = () => {
+    const generated = window.CPMGeneratedSite?.project;
+    if (generated?.id) return generated.id;
+    try { return JSON.parse(localStorage.getItem('cpm-last-project') || 'null')?.id || ''; } catch { return ''; }
+  };
+  let serverVersions = [];
 
   function saveVersion(event) {
     const generated = event?.detail || event || window.CPMGeneratedSite;
@@ -36,24 +42,39 @@
     refreshSelect();
   }
 
-  function refreshSelect() {
+  async function refreshSelect() {
     const select = document.getElementById('site-version-select');
     if (!select) return;
-    const versions = read();
-    select.innerHTML = versions.length
-      ? versions.map((version) => `<option value="${version.id}">${new Date(version.createdAt).toLocaleString('fr-FR')} — ${version.name}</option>`).join('')
+    const versions = read(); const projectId = activeProjectId();
+    if (projectId && window.CPMProjects?.versions) {
+      try { serverVersions = await window.CPMProjects.versions(projectId); } catch { serverVersions = []; }
+    } else serverVersions = [];
+    const options = [
+      ...versions.map((version) => `<option value="local:${version.id}">Local · ${new Date(version.createdAt).toLocaleString('fr-FR')} — ${version.name}</option>`),
+      ...serverVersions.map((version) => `<option value="server:${version.id}">Serveur · ${new Date(version.savedAt).toLocaleString('fr-FR')} — ${version.name}</option>`)
+    ];
+    select.innerHTML = options.length
+      ? options.join('')
       : '<option value="">Aucune version locale</option>';
   }
 
-  function restore() {
-    const id = document.getElementById('site-version-select')?.value;
-    const version = read().find((item) => item.id === id);
-    if (!version) return toast('Aucune version sélectionnée.');
-    window.CPMGeneratedSite = { html: version.html, project: version.project };
+  async function restore() {
+    const selected = document.getElementById('site-version-select')?.value || '';
+    const [source, id] = selected.split(':');
+    if (!id) return toast('Aucune version sélectionnée.');
+    let version;
+    if (source === 'server') {
+      const projectId = activeProjectId();
+      if (!projectId || !window.CPMProjects?.version) return toast('Version serveur indisponible.');
+      try { version = await window.CPMProjects.version(projectId, id); await window.CPMProjects.restoreVersion?.(projectId, id); }
+      catch { return toast('Impossible de restaurer la version serveur.'); }
+    } else version = read().find((item) => item.id === id);
+    if (!version?.html) return toast('Version introuvable.');
+    window.CPMGeneratedSite = { html: version.html, project: version.project || window.CPMGeneratedSite?.project || {} };
     const preview = document.getElementById('site-preview');
     if (preview) preview.srcdoc = version.html;
     window.dispatchEvent(new CustomEvent('cpm:site-restored', { detail: window.CPMGeneratedSite }));
-    toast('Version restaurée.');
+    toast(source === 'server' ? 'Version serveur restaurée.' : 'Version locale restaurée.');
   }
 
   function exportHistory() {
