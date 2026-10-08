@@ -227,13 +227,9 @@
         body: JSON.stringify(payload)
       });
       if (!response.ok) throw new Error();
-      if (payload.website) {
-        const analysis = await analyzeWebsite(payload.website);
-        if (analysis) toast(`Prospect enregistré. Analyse: ${Math.round(analysis.score || 0)}/100.`);
-      }
       form.reset();
       await loadAndRender();
-      toast('Prospect enregistré.');
+      toast(payload.website ? 'Prospect enregistré et analysé.' : 'Prospect enregistré.');
     } catch {
       toast('Échec de l\'enregistrement du prospect.');
     }
@@ -262,19 +258,11 @@
       return;
     }
     try {
-      const result = await analyzeWebsite(target.website);
-      const response = await fetch(`${API}/prospects/${encodeURIComponent(id)}`, {
-        method: 'PUT',
-        headers: headers(true),
-        body: JSON.stringify({
-          status: result.score >= 60 ? 'analyzed' : 'new',
-          analysis: result,
-          score: result.score || 0
-        })
-      });
+      const response = await fetch(`${API}/prospects/${encodeURIComponent(id)}/analyze`, { method: 'POST', headers: headers() });
       if (!response.ok) throw new Error();
+      const updated = await response.json();
       await loadAndRender();
-      toast(`Analyse terminée : ${Math.round(result.score || 0)}/100.`);
+      toast(`Analyse terminée : ${Math.round(updated.analysis?.score || 0)}/100.`);
     } catch {
       toast('L\'analyse du site a échoué.');
     }
@@ -353,7 +341,4 @@
     generateQuote,
     generateDossier
   };
-  window.addEventListener('cpm:auth-changed', renderProspectsPage);
-  window.addEventListener('DOMContentLoaded', renderProspectsPage);
-  setTimeout(() => { if (document.getElementById('app')) renderProspectsPage(); }, 250);
 })();

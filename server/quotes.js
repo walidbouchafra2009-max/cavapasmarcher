@@ -46,6 +46,10 @@ export async function createQuote(userId, input) {
     id: randomUUID(),
     ownerId: userId,
     projectId,
+    prospectName: String(input.prospectName || '').trim().slice(0, 160),
+    prospectEmail: String(input.prospectEmail || '').trim().slice(0, 240),
+    prospectCity: String(input.prospectCity || '').trim().slice(0, 160),
+    sector: String(input.sector || '').trim().slice(0, 160),
     number: `DEVIS-${Date.now()}-${Math.random().toString(36).slice(2, 9).toUpperCase()}`,
     description,
     items: quoteItems(input.items),
@@ -79,6 +83,10 @@ export async function updateQuote(userId, quoteId, input) {
 
   const quote = quotes[index];
   quote.description = String(input.description || quote.description).trim();
+  quote.prospectName = String(input.prospectName ?? quote.prospectName ?? '').trim().slice(0, 160);
+  quote.prospectEmail = String(input.prospectEmail ?? quote.prospectEmail ?? '').trim().slice(0, 240);
+  quote.prospectCity = String(input.prospectCity ?? quote.prospectCity ?? '').trim().slice(0, 160);
+  quote.sector = String(input.sector ?? quote.sector ?? '').trim().slice(0, 160);
   quote.items = Array.isArray(input.items) ? quoteItems(input.items) : quote.items;
   Object.assign(quote, totalsFor(quote.items, input.taxRate ?? quote.taxRate));
   quote.status = String(input.status || quote.status);

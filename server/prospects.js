@@ -142,6 +142,10 @@ export async function updateProspect(userId, prospectId, input) {
   prospect.notes = String(input.notes || prospect.notes).trim();
   prospect.status = String(input.status || prospect.status).trim();
   prospect.tags = Array.isArray(input.tags) ? input.tags : prospect.tags;
+  if (input.analysis && typeof input.analysis === 'object') {
+    prospect.analysis = input.analysis;
+    prospect.score = scoreProspect(prospect);
+  }
   if (input.website && input.website !== prospect.website) {
     prospect.website = String(input.website).trim() || null;
     if (prospect.website) {

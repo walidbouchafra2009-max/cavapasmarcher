@@ -167,6 +167,4 @@
   });
 
   window.CPMQuotesManager = { render: renderQuotesPage, fetch: fetchQuotes, createFromProspect: createQuoteFromProspect };
-  window.addEventListener('cpm:auth-changed', renderQuotesPage);
-  setTimeout(() => { if (document.getElementById('app')) renderQuotesPage(); }, 250);
 })();
