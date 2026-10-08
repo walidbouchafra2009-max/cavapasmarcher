@@ -37,4 +37,6 @@ assert.match(contactable, /application\/ld\+json/);
 assert.match(contactable, /"@type":"HomeAndConstructionBusiness"/);
 assert.match(contactable, /property="og:title"/);
 assert.match(contactable, /name="robots" content="index, follow"/);
+assert.match(contactable, /Mentions légales/);
+assert.match(contactable, /Ce site ne dépose pas de traceur publicitaire par défaut/);
 console.log('Site builder smoke tests passed');

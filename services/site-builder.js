@@ -433,6 +433,10 @@
     .contact-form input, .contact-form textarea { width: 100%; font: inherit; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--secondary); }
     .contact-form textarea { min-height: 112px; resize: vertical; }
     .contact-form button { margin-top: 15px; cursor: pointer; border: 0; }
+    .legal { padding: 26px 0 0; color: var(--muted); font-size: .86rem; }
+    .legal details { border-top: 1px solid var(--line); padding: 16px 0; }
+    .legal summary { cursor: pointer; font-weight: 800; color: var(--secondary); }
+    .legal p { max-width: 850px; line-height: 1.7; }
     footer {
       padding: 32px 0 62px;
       color: var(--muted);
@@ -582,10 +586,23 @@
         </div>
       </div>
     </section>
+    <section id="legal" class="legal">
+      <div class="container">
+        <details>
+          <summary>Mentions légales</summary>
+          <p><strong>Éditeur :</strong> ${name}${contactAddress ? `, ${contactAddress}` : ''}.${contactEmail ? ` Contact : <a href="${mailHref}">${contactEmail}</a>.` : ' Les coordonnées de contact seront complétées avant publication.'}</p>
+          <p>Ce site présente les activités de ${name}. Les informations publiées sont fournies à titre indicatif et peuvent être mises à jour sans préavis.</p>
+        </details>
+        <details>
+          <summary>Confidentialité</summary>
+          <p>Ce site ne dépose pas de traceur publicitaire par défaut. Lorsque vous utilisez le formulaire, votre navigateur prépare un e-mail à destination de l’entreprise : les informations saisies ne sont pas stockées automatiquement par ce site.</p>
+        </details>
+      </div>
+    </section>
   </main>
 
   <footer>
-    <div class="container">© ${new Date().getFullYear()} ${name} — ${sector} • ${city}</div>
+    <div class="container">© ${new Date().getFullYear()} ${name} — ${sector} • ${city} · <a href="#legal">Mentions légales & confidentialité</a></div>
   </footer>
   <script>
     document.querySelector('[data-contact-form]')?.addEventListener('submit', function (event) {
