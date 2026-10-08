@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { authenticate, login, logout, register } from './auth.js';
 import { getProspects, createProspect, updateProspect, deleteProspect, analyzeWebsite, scoreProspect } from './prospects.js';
+import { getQuotes, createQuote, updateQuote, deleteQuote, getQuoteHTML } from './quotes.js';
 
 const root = dirname(fileURLToPath(import.meta.url)); const dataFile = process.env.CPM_DATA_FILE || join(root, 'data', 'projects.json'); const port = Number(process.env.PORT || 8787); const max = 2 * 1024 * 1024;
 const origin = process.env.CPM_ALLOWED_ORIGIN || '*'; const legacyToken = process.env.CPM_AUTH_TOKEN || ''; const rate = new Map();
@@ -31,6 +32,15 @@ async function handler(req,res) { if(req.method==='OPTIONS') return json(res,204
   if(req.method==='POST'&&url.pathname==='/api/prospects') { try { const input=await body(req); const prospect=await createProspect(user.id,input); return json(res,201,prospect); } catch(e) { return json(res,400,{error:e.message}); } }
   const parts=url.pathname.split('/').filter(Boolean);
   if(parts[0]==='api'&&parts[1]==='prospects'&&parts[2]) { const prospectId=parts[2]; if(req.method==='GET') { const prospect=await getProspects(user.id).then(p=>p.find(x=>x.id===prospectId)); return json(res,prospect?200:404,prospect||{error:'not found'}); } if(req.method==='PUT') { try { const input=await body(req); const updated=await updateProspect(user.id,prospectId,input); return json(res,200,updated); } catch(e) { return json(res,400,{error:e.message}); } } if(req.method==='DELETE') { await deleteProspect(user.id,prospectId); return json(res,204,{}); } }
+  if(req.method==='POST'&&url.pathname==='/api/quotes') { try { return json(res,201,await createQuote(user.id,await body(req))); } catch(e) { return json(res,400,{error:e.message}); } }
+  if(req.method==='GET'&&url.pathname==='/api/quotes') return json(res,200,{quotes:await getQuotes(user.id)});
+  if(parts[0]==='api'&&parts[1]==='quotes'&&parts[2]) {
+    const quoteId=parts[2]; const quote=(await getQuotes(user.id)).find((item)=>item.id===quoteId);
+    if(req.method==='GET'&&parts[3]==='html') { if(!quote) return json(res,404,{error:'quote not found'}); res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'}); return res.end(await getQuoteHTML(quote)); }
+    if(req.method==='GET') return json(res,quote?200:404,quote||{error:'quote not found'});
+    if(req.method==='PUT') { try { return json(res,200,await updateQuote(user.id,quoteId,await body(req))); } catch(e) { return json(res,404,{error:e.message}); } }
+    if(req.method==='DELETE') { await deleteQuote(user.id,quoteId); return json(res,204,{}); }
+  }
   if(parts[0]!=='api'||parts[1]!=='projects') return json(res,404,{error:'route not found'}); const projects=await load(); const visible=(item)=>user.role==='admin'||item.ownerId===user.id;
   if(req.method==='GET'&&parts.length===2) return json(res,200,{projects:projects.filter(visible).map(publicProject)});
   if(req.method==='POST'&&parts.length===2) { const input=await body(req), error=valid(input); if(error) return json(res,400,{error}); const created=project(input,{},user.id); projects.unshift(created); await save(projects); return json(res,201,publicProject(created)); }

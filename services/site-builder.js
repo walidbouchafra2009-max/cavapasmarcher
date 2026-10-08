@@ -1,9 +1,24 @@
 (function (global) {
   const normalize = (value) => String(value || '').trim();
   const safeText = (value, fallback = '') => normalize(value) || fallback;
+  const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
 
   const getPlan = (planId = 'pro') => global.CPMPlans?.get ? global.CPMPlans.get(planId) : { id: 'pro', pages: 8, features: ['Design premium', 'Site responsive', 'Conversion orientée'] };
   const getNiche = (sector) => global.CPMNiches?.resolve ? global.CPMNiches.resolve(sector) : { label: 'Professionnel', palette: { primary: '#1F6FEB', secondary: '#0b1526', accent: '#EAF5FF', surface: '#F5F8FF' }, message: 'Une présence digitale premium.' };
+
+  const nicheStories = {
+    restaurant: { label: 'À la carte', title: 'Une table qui donne envie avant même la première bouchée.', intro: 'Découvrez la carte, les produits de saison et l’atmosphère de la maison.', items: [['La carte', 'Des assiettes de saison, précises et généreuses.'], ['Le lieu', 'Une adresse pensée pour se retrouver et prendre son temps.'], ['Réserver', 'Choisissez votre moment, simplement.']] },
+    medical: { label: 'Votre parcours', title: 'Un accompagnement clair, avant, pendant et après le rendez-vous.', intro: 'Informations utiles, spécialités et accès au cabinet réunis dans une expérience rassurante.', items: [['Spécialités', 'Des soins expliqués avec des mots clairs.'], ['Le cabinet', 'Un accueil attentif dans un cadre apaisant.'], ['Le rendez-vous', 'Une prise de rendez-vous simple et directe.']] },
+    real_estate: { label: 'Sélection du moment', title: 'Des lieux choisis pour ce qu’ils rendent possible.', intro: 'Une présentation éditoriale des biens et un parcours qui facilite la prise de décision.', items: [['Acheter', 'Trouver un lieu qui correspond réellement à votre projet.'], ['Vendre', 'Valoriser chaque détail qui fait la différence.'], ['Estimer', 'Obtenir un premier échange confidentiel.']] },
+    beauty: { label: 'La carte des soins', title: 'Un moment pour ralentir, se sentir bien et rayonner.', intro: 'Soins signatures, expertise et réservations réunis dans une expérience délicate.', items: [['Soins visage', 'Des rituels adaptés à votre peau et votre rythme.'], ['Corps & bien-être', 'Une parenthèse pour retrouver son énergie.'], ['Beauté', 'Des gestes précis pour révéler votre singularité.']] },
+    automotive: { label: 'L’atelier', title: 'Une expertise mécanique qui vous laisse repartir sereinement.', intro: 'Prestations, conseils et prise en charge expliqués avec transparence.', items: [['Entretien', 'Préserver la fiabilité de votre véhicule.'], ['Diagnostic', 'Comprendre avant de décider.'], ['Réparation', 'Une intervention claire, suivie et documentée.']] },
+    hospitality: { label: 'Votre séjour', title: 'Plus qu’une chambre : une parenthèse dont on se souvient.', intro: 'Présentez vos espaces, vos attentions et les expériences autour de votre adresse.', items: [['Les chambres', 'Des espaces pensés pour se sentir bien, tout simplement.'], ['La destination', 'Les bonnes adresses et moments à vivre à proximité.'], ['Disponibilités', 'Préparez votre séjour en quelques instants.']] },
+    sport: { label: 'Le programme', title: 'Un lieu, une méthode et l’énergie de progresser ensemble.', intro: 'Cours, coaching et accompagnement : tout ce qui aide à tenir dans la durée.', items: [['Cours', 'Des séances adaptées à chaque niveau.'], ['Coaching', 'Un suivi concret et des objectifs qui vous ressemblent.'], ['Essai', 'Faites le premier pas, sans pression.']] },
+    education: { label: 'Les formations', title: 'Apprendre avec méthode. Avancer avec confiance.', intro: 'Des parcours lisibles, des résultats concrets et un accompagnement humain.', items: [['Parcours', 'Choisissez une formation alignée à votre objectif.'], ['Méthode', 'Des contenus clairs, applicables et progressifs.'], ['Admission', 'Toutes les informations pour vous lancer.']] },
+    artisan: { label: 'Le savoir-faire', title: 'Des réalisations solides, pensées dans le détail.', intro: 'Projets, méthode et preuves de qualité au cœur d’un parcours rassurant.', items: [['Vos projets', 'Une réponse concrète à votre besoin et à votre lieu.'], ['La méthode', 'Un déroulé clair, du premier échange à la réception.'], ['Demander une étude', 'Partagez votre projet pour obtenir un premier avis.']] },
+    legal: { label: 'Domaines d’intervention', title: 'Une expertise rigoureuse, rendue simplement accessible.', intro: 'Vos sujets sont expliqués clairement pour permettre les bonnes décisions.', items: [['Conseil', 'Un premier regard précis sur votre situation.'], ['Accompagnement', 'Une stratégie lisible à chaque étape.'], ['Rendez-vous', 'Échangez en toute confidentialité avec un expert.']] },
+    professional: { label: 'Notre accompagnement', title: 'Les bonnes décisions commencent par une conversation claire.', intro: 'Vos domaines d’expertise, votre méthode et votre façon de créer de la valeur.', items: [['Conseil', 'Une lecture précise de votre situation.'], ['Expertise', 'Des recommandations claires et argumentées.'], ['Rendez-vous', 'Un premier échange pour cadrer votre besoin.']] }
+  };
 
   const localizedLabels = (language = 'fr') => {
     const map = {
@@ -23,10 +38,10 @@
     const secondary = niche.palette.secondary;
     const accent = niche.palette.accent;
     const surface = niche.palette.surface;
-    const name = safeText(project.name, 'Votre entreprise');
-    const city = safeText(project.city, 'Votre ville');
-    const sector = safeText(project.sector, 'Votre activité');
-    const description = safeText(project.description, 'Une présence digitale premium pensée pour rassurer, convaincre et convertir.');
+    const name = escapeHtml(safeText(project.name, 'Votre entreprise'));
+    const city = escapeHtml(safeText(project.city, 'Votre ville'));
+    const sector = escapeHtml(safeText(project.sector, 'Votre activité'));
+    const description = escapeHtml(safeText(project.description, 'Une présence digitale premium pensée pour rassurer, convaincre et convertir.'));
     const currency = safeText(project.currency, 'EUR');
     const setup = safeText(project.setup, '2900');
     const inArabic = String(project.language || 'fr').toLowerCase() === 'ar';
@@ -37,13 +52,12 @@
       [String(plan.pages || 8), 'Sections']
     ];
 
-    const expertiseCards = (plan.features && plan.features.length ? plan.features : ['Design premium', 'Conversion optimisée', 'Présence digitale crédible'])
-      .slice(0, 3)
-      .map((feature) => `
+    const story = nicheStories[niche.id] || nicheStories.professional;
+    const expertiseCards = story.items.map(([feature, detail]) => `
         <article class="card-feature">
-          <span class="mini-tag">Service</span>
-          <h3>${feature}</h3>
-          <p>Une solution pensée pour améliorer votre image, votre crédibilité et votre conversion.</p>
+          <span class="mini-tag">${story.label}</span>
+          <h3>${escapeHtml(feature)}</h3>
+          <p>${escapeHtml(detail)}</p>
         </article>
       `).join('');
 
@@ -259,6 +273,7 @@
       line-height: 1.15;
       letter-spacing: -0.04em;
     }
+    .section-copy { color: var(--muted); max-width: 650px; margin: 12px 0 0; font-size: 1.05rem; }
     .grid-3 {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -451,7 +466,8 @@
       <div class="container">
         <div class="section-head">
           <span class="mini-tag">${labels.expertise}</span>
-          <h2>Des prestations alignées sur votre activité.</h2>
+          <h2>${escapeHtml(story.title)}</h2>
+          <p class="section-copy">${escapeHtml(story.intro)}</p>
         </div>
         <div class="grid-3">
           ${expertiseCards}

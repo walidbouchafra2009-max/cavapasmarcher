@@ -5,6 +5,11 @@
   const toast = (msg) => { const el = document.getElementById('toast'); if(!el) return; el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2600); };
   const esc = (v) => String(v || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money = (v) => `${Math.round((Number(v) || 0) * 100) / 100}€`;
+  const download = (url, name) => {
+    const link = document.createElement('a');
+    link.href = url; link.download = name; link.target = '_blank'; link.rel = 'noopener';
+    document.body.appendChild(link); link.click(); link.remove();
+  };
 
   async function fetchProspects() {
     try {
@@ -140,7 +145,23 @@
     const exportBtn = e.target.closest('[data-quote-export]');
     if (exportBtn) {
       e.preventDefault();
-      toast('Export en développement...');
+      const id = exportBtn.dataset.quoteExport;
+      if (!id || !token()) return toast('Connectez-vous pour exporter le devis.');
+      download(`${API}/quotes/${encodeURIComponent(id)}/html?download=1`, `devis-${id}.html`);
+      return;
+    }
+
+    const deleteBtn = e.target.closest('[data-quote-delete]');
+    if (deleteBtn) {
+      e.preventDefault();
+      const id = deleteBtn.dataset.quoteDelete;
+      if (!id || !window.confirm('Supprimer ce devis ? Cette action est définitive.')) return;
+      try {
+        const response = await fetch(`${API}/quotes/${encodeURIComponent(id)}`, { method: 'DELETE', headers: headers() });
+        if (!response.ok) throw new Error();
+        toast('Devis supprimé.');
+        await loadAndRender();
+      } catch { toast('Impossible de supprimer ce devis.'); }
       return;
     }
   });

@@ -5,6 +5,18 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const quotesFile = process.env.CPM_QUOTES_FILE || join(root, 'data', 'quotes.json');
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[character]));
+const money = (value) => Math.round((Number(value) || 0) * 100) / 100;
+const quoteItems = (items) => Array.isArray(items) ? items.slice(0, 100).map((item) => {
+  const quantity = Math.max(1, Math.min(10000, Number(item.quantity) || 1));
+  const unitPrice = Math.max(0, money(item.unitPrice));
+  return { label: String(item.label || '').trim().slice(0, 240), quantity, unitPrice, subtotal: money(quantity * unitPrice) };
+}) : [];
+const totalsFor = (items, taxRate) => {
+  const totalHT = money(items.reduce((sum, item) => sum + item.subtotal, 0));
+  const safeTaxRate = Math.max(0, Math.min(100, Number(taxRate) || 0));
+  return { totalHT, taxRate: safeTaxRate, totalTTC: money(totalHT * (1 + safeTaxRate / 100)) };
+};
 
 async function load() {
   try {
@@ -36,17 +48,8 @@ export async function createQuote(userId, input) {
     projectId,
     number: `DEVIS-${Date.now()}-${Math.random().toString(36).slice(2, 9).toUpperCase()}`,
     description,
-    items: Array.isArray(input.items)
-      ? input.items.map((item) => ({
-          label: String(item.label || '').trim(),
-          quantity: Number(item.quantity || 1),
-          unitPrice: Number(item.unitPrice || 0),
-          subtotal: Number(item.quantity || 1) * Number(item.unitPrice || 0)
-        }))
-      : [],
-    totalHT: Number(input.totalHT || 0),
-    taxRate: Number(input.taxRate || 20),
-    totalTTC: Number(input.totalTTC || 0),
+    items: quoteItems(input.items),
+    ...totalsFor(quoteItems(input.items), input.taxRate ?? 20),
     currency: String(input.currency || 'EUR'),
     validityDays: Number(input.validityDays || 30),
     status: 'draft',
@@ -76,10 +79,8 @@ export async function updateQuote(userId, quoteId, input) {
 
   const quote = quotes[index];
   quote.description = String(input.description || quote.description).trim();
-  quote.items = Array.isArray(input.items) ? input.items : quote.items;
-  quote.totalHT = Number(input.totalHT || quote.totalHT);
-  quote.taxRate = Number(input.taxRate || quote.taxRate);
-  quote.totalTTC = Number(input.totalTTC || quote.totalTTC);
+  quote.items = Array.isArray(input.items) ? quoteItems(input.items) : quote.items;
+  Object.assign(quote, totalsFor(quote.items, input.taxRate ?? quote.taxRate));
   quote.status = String(input.status || quote.status);
   quote.notes = String(input.notes || quote.notes).trim();
   quote.terms = String(input.terms || quote.terms).trim();
@@ -101,7 +102,7 @@ export async function getQuoteHTML(quote = {}) {
   const itemsHtml = (quote.items || [])
     .map(
       (item) =>
-        `<tr><td>${item.label || ''}</td><td style="text-align:center;">${item.quantity || 1}</td><td style="text-align:right;">${Math.round((item.unitPrice || 0) * 100) / 100}€</td><td style="text-align:right; font-weight:bold;">${Math.round((item.subtotal || 0) * 100) / 100}€</td></tr>`
+          `<tr><td>${escapeHtml(item.label)}</td><td style="text-align:center;">${money(item.quantity || 1)}</td><td style="text-align:right;">${money(item.unitPrice)}€</td><td style="text-align:right; font-weight:bold;">${money(item.subtotal)}€</td></tr>`
     )
     .join('');
 
@@ -151,7 +152,7 @@ export async function getQuoteHTML(quote = {}) {
     <header>
       <div><div class="logo">CavaPasMarcher</div></div>
       <div class="header-info">
-        <p><strong>Devis N°</strong> ${quote.number || 'DEVIS'}</p>
+        <p><strong>Devis N°</strong> ${escapeHtml(quote.number || 'DEVIS')}</p>
         <p><strong>Date:</strong> ${new Date(quote.createdAt || Date.now()).toLocaleDateString('fr-FR')}</p>
         <p><strong>Valable jusqu'au:</strong> ${new Date(Date.now() + ((quote.validityDays || 30) * 24 * 60 * 60 * 1000)).toLocaleDateString('fr-FR')}</p>
       </div>
@@ -167,7 +168,7 @@ export async function getQuoteHTML(quote = {}) {
       </div>
       <div class="meta-section">
         <p class="meta-label">Description:</p>
-        <p>${quote.description || 'Service web'}</p>
+        <p>${escapeHtml(quote.description || 'Service web')}</p>
       </div>
     </div>
 
@@ -203,11 +204,11 @@ export async function getQuoteHTML(quote = {}) {
       </div>
     </div>
 
-    ${quote.notes ? `<div class="notes"><p class="notes-title">Notes:</p><p>${(quote.notes || '').replace(/\n/g, '<br>')}</p></div>` : ''}
+    ${quote.notes ? `<div class="notes"><p class="notes-title">Notes:</p><p>${escapeHtml(quote.notes).replace(/\n/g, '<br>')}</p></div>` : ''}
 
     <div class="terms">
       <p class="terms-title">Conditions:</p>
-      <p>${(quote.terms || '').replace(/\n/g, '<br>')}</p>
+      <p>${escapeHtml(quote.terms).replace(/\n/g, '<br>')}</p>
     </div>
 
     <footer>

@@ -71,13 +71,31 @@
       message: 'Un apprentissage clair, motivant et orienté résultats.',
       sections: ['hero', 'programs', 'about', 'proof', 'faq', 'contact'],
       cta: 'Découvrir les formations'
+    },
+    artisan: {
+      id: 'artisan',
+      label: 'Artisanat / Habitat',
+      palette: { primary: '#A45D28', secondary: '#261B14', accent: '#F8EEE5', surface: '#FFF9F5' },
+      message: 'Le savoir-faire qui transforme vos projets.',
+      sections: ['hero', 'services', 'projects', 'process', 'proof', 'contact'],
+      cta: 'Demander une étude'
+    },
+    legal: {
+      id: 'legal',
+      label: 'Juridique / Conseil',
+      palette: { primary: '#354E75', secondary: '#111B2B', accent: '#EEF2F8', surface: '#F8FAFD' },
+      message: 'Une expertise rigoureuse, expliquée clairement.',
+      sections: ['hero', 'expertise', 'method', 'proof', 'faq', 'contact'],
+      cta: 'Prendre rendez-vous'
     }
   };
 
   const resolveNiche = (sector = '') => {
     const normalized = String(sector).toLowerCase();
     if (/(restaurant|bistro|pizzeria|traiteur|cafe|brasserie|café)/.test(normalized)) return nicheCatalog.restaurant;
-    if (/(dent|clinique|cabinet|medical|sant|med|vétérinaire|veterinaire|chirurgie|consultation)/.test(normalized)) return nicheCatalog.medical;
+    if (/(avocat|notaire|jurid|fiscal|comptable|expert-comptable|assurance)/.test(normalized)) return nicheCatalog.legal;
+    if (/(architecte|artisan|plombier|électricien|electricien|menuisier|rénovation|renovation|maçon|macon|couvreur|paysagiste)/.test(normalized)) return nicheCatalog.artisan;
+    if (/(dent|clinique|medical|sant|med|vétérinaire|veterinaire|chirurgie|consultation|kiné|kine|ostéo|osteo)/.test(normalized)) return nicheCatalog.medical;
     if (/(immobilier|maison|vente|terrain|bien|real estate|property)/.test(normalized)) return nicheCatalog.real_estate;
     if (/(beauté|spa|coiffure|esthétique|beauty|salon|massage)/.test(normalized)) return nicheCatalog.beauty;
     if (/(garage|auto|automobile|voiture|mécanique|mechanic)/.test(normalized)) return nicheCatalog.automotive;
