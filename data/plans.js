@@ -1,5 +1,23 @@
 (function (global) {
   const planCatalog = {
+    landing: {
+      id: 'landing',
+      label: 'Landing page',
+      labelFr: 'Landing page',
+      setupBase: 1900,
+      monthlyBase: 99,
+      pages: 1,
+      features: ['Une page de conversion sur mesure', 'Message, offre et appel à l’action', 'Version mobile', 'SEO technique essentiel']
+    },
+    medium: {
+      id: 'medium',
+      label: 'Medium',
+      labelFr: 'Medium',
+      setupBase: 3900,
+      monthlyBase: 179,
+      pages: 5,
+      features: ['Site vitrine structuré', 'Parcours métier adapté', 'Preuves et contact', 'SEO local de base']
+    },
     basic: {
       id: 'basic',
       label: 'Basic',

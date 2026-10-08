@@ -45,6 +45,15 @@
     const currency = safeText(project.currency, 'EUR');
     const setup = safeText(project.setup, '2900');
     const inArabic = String(project.language || 'fr').toLowerCase() === 'ar';
+    const planId = String(plan.id || project.plan || 'pro').toLowerCase();
+    const isLanding = planId === 'landing';
+    const showAbout = !isLanding;
+    const showExpertise = !isLanding;
+    const showProcess = ['pro', 'ultimate'].includes(planId);
+    const showTestimonials = ['medium', 'basic', 'pro', 'ultimate'].includes(planId);
+    const contactEmail = escapeHtml(safeText(project.email, `contact@${String(project.name || 'entreprise').toLowerCase().replace(/[^a-z0-9]/g, '')}.com`));
+    const contactPhone = escapeHtml(safeText(project.phone, ''));
+    const objective = escapeHtml(safeText(project.goal, niche.cta || labels.cta));
 
     const statList = [
       ['Premium', 'Design'],
@@ -407,9 +416,9 @@
       <div class="nav">
         <div class="brand">${name}</div>
         <div class="nav-links">
-          <a href="#about">${labels.about}</a>
-          <a href="#expertise">${labels.expertise}</a>
-          <a href="#process">${labels.method}</a>
+          ${showAbout ? `<a href="#about">${labels.about}</a>` : ''}
+          ${showExpertise ? `<a href="#expertise">${labels.expertise}</a>` : ''}
+          ${showProcess ? `<a href="#process">${labels.method}</a>` : ''}
           <a href="#contact">${labels.contact}</a>
         </div>
       </div>
@@ -436,7 +445,7 @@
   </header>
 
   <main>
-    <section id="about">
+    ${showAbout ? `<section id="about">
       <div class="container">
         <div class="section-head">
           <span class="mini-tag">${labels.about}</span>
@@ -460,9 +469,9 @@
           </article>
         </div>
       </div>
-    </section>
+    </section>` : ''}
 
-    <section id="expertise">
+    ${showExpertise ? `<section id="expertise">
       <div class="container">
         <div class="section-head">
           <span class="mini-tag">${labels.expertise}</span>
@@ -473,9 +482,9 @@
           ${expertiseCards}
         </div>
       </div>
-    </section>
+    </section>` : ''}
 
-    <section id="process">
+    ${showProcess ? `<section id="process">
       <div class="container">
         <div class="section-head">
           <span class="mini-tag">${labels.method}</span>
@@ -483,9 +492,9 @@
         </div>
         <div class="process">${processSteps}</div>
       </div>
-    </section>
+    </section>` : ''}
 
-    <section>
+    ${showTestimonials ? `<section>
       <div class="container">
         <div class="section-head">
           <span class="mini-tag">${labels.trust}</span>
@@ -493,7 +502,7 @@
         </div>
         <div class="testimonials">${testimonials}</div>
       </div>
-    </section>
+    </section>` : ''}
 
     <section>
       <div class="container">
@@ -515,9 +524,9 @@
         <div class="cta-panel">
           <div>
             <span class="mini-tag" style="background: rgba(255,255,255,0.14); color: white; border: 1px solid rgba(255,255,255,0.18);">${labels.contact}</span>
-            <h2>Développons votre présence digitale.</h2>
+            <h2>${objective}</h2>
           </div>
-          <a class="btn primary" href="mailto:contact@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com">${labels.cta}</a>
+          <a class="btn primary" href="${contactPhone ? `tel:${contactPhone.replace(/[^+0-9]/g, '')}` : `mailto:${contactEmail}`}">${contactPhone || labels.cta}</a>
         </div>
       </div>
     </section>
