@@ -15,6 +15,7 @@ const clinic = build({ name: 'Cabinet Santé', sector: 'clinique dentaire', city
 const artisan = build({ name: 'Atelier Durand', sector: 'menuisier', city: 'Nantes', plan: 'ultimate', language: 'fr' });
 const landing = build({ name: 'Studio One', sector: 'restaurant', plan: 'landing', language: 'fr', goal: 'Réserver votre table', phone: '+33 6 00 00 00 00' });
 const medium = build({ name: 'Studio Two', sector: 'restaurant', plan: 'medium', language: 'fr' });
+const contactable = build({ name: 'Atelier Link', sector: 'artisan', plan: 'pro', language: 'fr', email: 'bonjour@example.fr', phone: '+33 7 11 22 33 44', address: '10 rue des Arts, Lyon' });
 
 assert.match(restaurant, /La carte/);
 assert.match(clinic, /Spécialités/);
@@ -28,4 +29,8 @@ assert.doesNotMatch(landing, /id="expertise"/);
 assert.doesNotMatch(landing, /id="process"/);
 assert.match(medium, /id="expertise"/);
 assert.doesNotMatch(medium, /id="process"/);
+assert.match(contactable, /mailto:bonjour@example.fr/);
+assert.match(contactable, /tel:\+33711223344/);
+assert.match(contactable, /data-contact-form/);
+assert.match(contactable, /google\.com\/maps\/search/);
 console.log('Site builder smoke tests passed');

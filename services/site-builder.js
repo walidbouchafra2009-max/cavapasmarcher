@@ -53,6 +53,10 @@
     const showTestimonials = ['medium', 'basic', 'pro', 'ultimate'].includes(planId);
     const contactEmail = escapeHtml(safeText(project.email, `contact@${String(project.name || 'entreprise').toLowerCase().replace(/[^a-z0-9]/g, '')}.com`));
     const contactPhone = escapeHtml(safeText(project.phone, ''));
+    const contactAddress = escapeHtml(safeText(project.address, city));
+    const phoneHref = contactPhone.replace(/[^+0-9]/g, '');
+    const mailHref = `mailto:${contactEmail}`;
+    const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(safeText(project.address, project.city || project.name || ''))}`;
     const objective = escapeHtml(safeText(project.goal, niche.cta || labels.cta));
 
     const statList = [
@@ -398,6 +402,15 @@
       font-size: clamp(2rem, 3vw, 2.6rem);
       letter-spacing: -0.04em;
     }
+    .contact-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 22px; margin-top: 22px; }
+    .contact-details, .contact-form { background: white; border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-soft); }
+    .contact-details h3, .contact-form h3 { margin: 0 0 14px; font-size: 1.3rem; }
+    .contact-details a { display: block; color: var(--primary); font-weight: 700; margin: 11px 0; overflow-wrap: anywhere; }
+    .contact-details p { color: var(--muted); margin: 8px 0; }
+    .contact-form label { display: block; color: var(--muted); font-size: .85rem; font-weight: 700; margin: 12px 0 6px; }
+    .contact-form input, .contact-form textarea { width: 100%; font: inherit; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--secondary); }
+    .contact-form textarea { min-height: 112px; resize: vertical; }
+    .contact-form button { margin-top: 15px; cursor: pointer; border: 0; }
     footer {
       padding: 32px 0 62px;
       color: var(--muted);
@@ -405,6 +418,7 @@
     @media (max-width: 960px) {
       .hero, .grid-3, .process, .testimonials { grid-template-columns: 1fr; }
       .cta-panel, .pricing-wrap { flex-direction: column; align-items: flex-start; }
+      .contact-grid { grid-template-columns: 1fr; }
       .nav { flex-direction: column; align-items: flex-start; }
       .nav-links { gap: 10px 16px; }
     }
@@ -526,7 +540,23 @@
             <span class="mini-tag" style="background: rgba(255,255,255,0.14); color: white; border: 1px solid rgba(255,255,255,0.18);">${labels.contact}</span>
             <h2>${objective}</h2>
           </div>
-          <a class="btn primary" href="${contactPhone ? `tel:${contactPhone.replace(/[^+0-9]/g, '')}` : `mailto:${contactEmail}`}">${contactPhone || labels.cta}</a>
+          <a class="btn primary" href="${contactPhone ? `tel:${phoneHref}` : mailHref}">${contactPhone || labels.cta}</a>
+        </div>
+        <div class="contact-grid">
+          <aside class="contact-details">
+            <h3>Nous contacter</h3>
+            ${contactPhone ? `<a href="tel:${phoneHref}">${contactPhone}</a>` : ''}
+            <a href="${mailHref}">${contactEmail}</a>
+            <p>${contactAddress}</p>
+            <a href="${mapHref}" target="_blank" rel="noopener">Voir l’itinéraire</a>
+          </aside>
+          <form class="contact-form" data-contact-form>
+            <h3>Parlons de votre besoin</h3>
+            <label>Votre nom<input name="name" required autocomplete="name"></label>
+            <label>Votre email<input name="email" type="email" required autocomplete="email"></label>
+            <label>Votre message<textarea name="message" required placeholder="Décrivez votre besoin…"></textarea></label>
+            <button class="btn primary" type="submit">Envoyer votre demande</button>
+          </form>
         </div>
       </div>
     </section>
@@ -535,6 +565,15 @@
   <footer>
     <div class="container">© ${new Date().getFullYear()} ${name} — ${sector} • ${city}</div>
   </footer>
+  <script>
+    document.querySelector('[data-contact-form]')?.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
+      const subject = encodeURIComponent('Demande depuis le site — ' + String(data.get('name') || 'nouveau contact'));
+      const body = encodeURIComponent('Nom : ' + String(data.get('name') || '') + '\nEmail : ' + String(data.get('email') || '') + '\n\nMessage :\n' + String(data.get('message') || ''));
+      window.location.href = '${mailHref}?subject=' + subject + '&body=' + body;
+    });
+  </script>
 </body>
 </html>`;
 
