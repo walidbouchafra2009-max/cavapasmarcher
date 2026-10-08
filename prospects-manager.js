@@ -3,7 +3,7 @@
   const token = () => window.CPMAuth?.token?.() || window.CPM_API_TOKEN || localStorage.getItem('cpm-session-token') || '';
   const headers = (json = false) => ({ ...(json ? {'content-type':'application/json'} : {}), ...(token() ? { authorization:`Bearer ${token()}` } : {}) });
   const toast = (message) => { const el = document.getElementById('toast'); if (!el) return; el.textContent = message; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2600); };
-  const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
+  const escapeHtml = (value) => String(value ?? '').replace(/[&<>\"']/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
   const statusLabel = (status = 'new') => ({ new:'Nouveau', analyzed:'Analysé', contacted:'Contacté', interested:'Intéressé', quoting:'Devis', won:'Gagné', lost:'Perdu' }[status] || 'Nouveau');
 
   async function fetchProspects() {
@@ -76,6 +76,18 @@
       openDocumentFromHtml(html, `contrat-${(target.name || 'client').replace(/\s+/g, '-').toLowerCase()}.html`);
       toast('Contrat généré et ouvert.');
     }
+  }
+
+  async function generateDossier(prospectId) {
+    const prospects = await fetchProspects();
+    const target = prospects.find((p) => p.id === prospectId);
+    if (!target) return toast('Prospect introuvable.');
+    if (!window.CPMClientDossier?.buildDossierHTML) {
+      return toast('Le générateur de dossier client est introuvable.');
+    }
+    const dossierHTML = window.CPMClientDossier.buildDossierHTML(target);
+    openDocumentFromHtml(dossierHTML, `dossier-${(target.name || 'client').replace(/\s+/g, '-').toLowerCase()}.html`);
+    toast('Dossier client généré.');
   }
 
   async function generateQuote(prospectId) {
@@ -153,7 +165,7 @@
             <strong>Score:</strong> ${Math.round(analysis.score || 0)} / 100<br>
             <strong>Responsive:</strong> ${analysis.responsive ? 'Oui' : 'Non'} · <strong>Contact:</strong> ${analysis.hasContact ? 'Oui' : 'Non'}
           </div>
-        ` : '<div class="prospect-analysis"><strong>Analyse:</strong> aucune analyse pour l'instant.</div>';
+        ` : '<div class="prospect-analysis"><strong>Analyse:</strong> aucune analyse pour l\'instant.</div>';
 
         return `
           <article class="prospect-card">
@@ -181,13 +193,14 @@
               <button type="button" class="secondary-btn" data-prospect-quote="${escapeHtml(prospect.id || '')}">Devis</button>
               <button type="button" class="secondary-btn" data-prospect-proposal="${escapeHtml(prospect.id || '')}">Proposition</button>
               <button type="button" class="secondary-btn" data-prospect-contract="${escapeHtml(prospect.id || '')}">Contrat</button>
+              <button type="button" class="secondary-btn" data-prospect-dossier="${escapeHtml(prospect.id || '')}">Dossier</button>
               <button type="button" class="secondary-btn" data-prospect-delete="${escapeHtml(prospect.id || '')}">Supprimer</button>
             </div>
           </article>
         `;
       }).join('')}</div>`;
     } catch (error) {
-      root.innerHTML = '<div class="prospect-empty">Impossible de charger les prospects. Vérifiez votre session ou l'API locale.</div>';
+      root.innerHTML = '<div class="prospect-empty">Impossible de charger les prospects. Vérifiez votre session ou l\'API locale.</div>';
     }
   }
 
@@ -222,7 +235,7 @@
       await loadAndRender();
       toast('Prospect enregistré.');
     } catch {
-      toast('Échec de l'enregistrement du prospect.');
+      toast('Échec de l\'enregistrement du prospect.');
     }
   }
 
@@ -245,7 +258,7 @@
     const prospects = await fetchProspects();
     const target = prospects.find((prospect) => prospect.id === id);
     if (!target || !target.website) {
-      toast('Ajoutez un site web avant d'analyser ce prospect.');
+      toast('Ajoutez un site web avant d\'analyser ce prospect.');
       return;
     }
     try {
@@ -263,7 +276,7 @@
       await loadAndRender();
       toast(`Analyse terminée : ${Math.round(result.score || 0)}/100.`);
     } catch {
-      toast('L'analyse du site a échoué.');
+      toast('L\'analyse du site a échoué.');
     }
   }
 
@@ -310,6 +323,13 @@
       return;
     }
 
+    const dossierButton = event.target.closest('[data-prospect-dossier]');
+    if (dossierButton) {
+      event.preventDefault();
+      await generateDossier(dossierButton.dataset.prospectDossier);
+      return;
+    }
+
     const deleteButton = event.target.closest('[data-prospect-delete]');
     if (deleteButton) {
       event.preventDefault();
@@ -324,7 +344,15 @@
     }
   });
 
-  window.CPMProspectsManager = { render: renderProspectsPage, analyze: analyzeProspect, fetch: fetchProspects, generateProposal, generateContract, generateQuote };
+  window.CPMProspectsManager = {
+    render: renderProspectsPage,
+    analyze: analyzeProspect,
+    fetch: fetchProspects,
+    generateProposal,
+    generateContract,
+    generateQuote,
+    generateDossier
+  };
   window.addEventListener('cpm:auth-changed', renderProspectsPage);
   window.addEventListener('DOMContentLoaded', renderProspectsPage);
   setTimeout(() => { if (document.getElementById('app')) renderProspectsPage(); }, 250);
