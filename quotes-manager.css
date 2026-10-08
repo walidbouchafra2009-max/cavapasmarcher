@@ -1,0 +1,18 @@
+.quotes-page { display:grid; gap:18px; }
+.quote-form { background:#fff; border:1px solid #dfeae2; border-radius:16px; padding:16px; display:grid; gap:12px; }
+.quote-items { display:grid; gap:10px; }
+.quote-item { display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:8px; align-items:center; }
+.quote-item input, .quote-item select { border:1px solid #d8e4dc; border-radius:8px; padding:8px; }
+.quote-totals { display:grid; grid-template-columns: 2fr 1fr; gap:12px; }
+.quote-actions { display:flex; gap:8px; }
+.quotes-grid { display:grid; gap:14px; }
+.quotes-table { background:#fff; border:1px solid #dfeae2; border-radius:14px; overflow:auto; }
+.quotes-table table { width:100%; border-collapse:collapse; }
+.quotes-table thead { background:#f0f5f3; }
+.quotes-table th { padding:12px; text-align:left; font-weight:700; color:#1f352a; border-bottom:2px solid #dfeae2; font-size:11px; text-transform:uppercase; }
+.quotes-table td { padding:12px; border-bottom:1px solid #e8ede9; }
+.quotes-table tr:hover { background:#fbfdfb; }
+.badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:10px; font-weight:700; background:#edf7ef; color:#2a6a3f; }
+.badge.draft { background:#fff1d6; color:#8a5d15; }
+.small { padding:6px 10px; font-size:12px; }
+.quote-empty { background:#f7faf8; border:1px dashed #d5e2d9; border-radius:14px; padding:18px; color:#5d7268; }
