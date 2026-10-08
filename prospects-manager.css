@@ -1,0 +1,22 @@
+/* Prospect CRM and auto-analysis panel */
+.prospects-page { display:grid; gap:18px; }
+.prospects-toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; }
+.prospects-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:14px; }
+.prospect-card { background:#fff; border:1px solid #dfeae2; border-radius:16px; padding:16px; box-shadow:0 18px 38px rgba(20,31,25,.04); display:grid; gap:10px; }
+.prospect-card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+.prospect-card h3 { margin:0; font-size:1.1rem; }
+.prospect-card p { margin:0; color:#5f7569; }
+.prospect-badge { display:inline-flex; align-items:center; border-radius:999px; padding:5px 8px; font-size:11px; font-weight:700; background:#edf7ef; color:#2a6a3f; }
+.prospect-badge.analysis { background:#eef4ff; color:#2a4c90; }
+.prospect-badge.new { background:#fff1d6; color:#8a5d15; }
+.prospect-score { display:inline-flex; align-items:center; justify-content:center; min-width:54px; border-radius:10px; background:#f3f5f4; color:#1e3528; font-weight:800; padding:6px 8px; }
+.prospect-meta { display:flex; flex-wrap:wrap; gap:8px; font-size:11px; color:#61766d; }
+.prospect-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.prospect-form { background:#fff; border:1px solid #dfeae2; border-radius:16px; padding:16px; display:grid; gap:12px; }
+.prospect-form-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; }
+.prospect-form input, .prospect-form textarea, .prospect-form select { width:100%; border:1px solid #d8e4dc; border-radius:10px; padding:10px 11px; font:inherit; background:#fbfdfb; }
+.prospect-form textarea { min-height:90px; resize:vertical; }
+.prospect-empty { background:#f7faf8; border:1px dashed #d5e2d9; border-radius:14px; padding:18px; color:#5d7268; }
+.prospect-analysis { background:#f7faf8; border:1px solid #dfeae2; border-radius:12px; padding:12px; color:#3d4f46; font-size:12px; }
+.prospect-analysis strong { color:#1f352a; }
+@media (max-width: 720px) { .prospects-toolbar { flex-direction:column; align-items:flex-start; } }
