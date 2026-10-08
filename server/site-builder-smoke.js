@@ -33,4 +33,8 @@ assert.match(contactable, /mailto:bonjour@example.fr/);
 assert.match(contactable, /tel:\+33711223344/);
 assert.match(contactable, /data-contact-form/);
 assert.match(contactable, /google\.com\/maps\/search/);
+assert.match(contactable, /application\/ld\+json/);
+assert.match(contactable, /"@type":"HomeAndConstructionBusiness"/);
+assert.match(contactable, /property="og:title"/);
+assert.match(contactable, /name="robots" content="index, follow"/);
 console.log('Site builder smoke tests passed');

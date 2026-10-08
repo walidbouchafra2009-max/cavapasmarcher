@@ -58,6 +58,22 @@
     const mailHref = contactEmail ? `mailto:${contactEmail}` : '#contact-form';
     const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(safeText(project.address, project.city || project.name || ''))}`;
     const objective = escapeHtml(safeText(project.goal, niche.cta || labels.cta));
+    const schemaTypes = { restaurant:'Restaurant', medical:'MedicalBusiness', real_estate:'RealEstateAgent', beauty:'BeautySalon', automotive:'AutoRepair', hospitality:'LodgingBusiness', sport:'SportsActivityLocation', education:'EducationalOrganization', artisan:'HomeAndConstructionBusiness', legal:'LegalService', professional:'ProfessionalService' };
+    const rawName = safeText(project.name, 'Votre entreprise');
+    const rawDescription = safeText(project.description, `${rawName}, ${safeText(project.sector, 'professionnel')} à ${safeText(project.city, 'votre ville')}.`);
+    const localBusiness = {
+      '@context': 'https://schema.org',
+      '@type': schemaTypes[niche.id] || 'ProfessionalService',
+      name: rawName,
+      description: rawDescription,
+      email: safeText(project.email, undefined),
+      telephone: safeText(project.phone, undefined),
+      address: { '@type': 'PostalAddress', streetAddress: safeText(project.address, undefined), addressLocality: safeText(project.city, undefined), addressCountry: safeText(project.country, undefined) }
+    };
+    Object.keys(localBusiness).forEach((key) => localBusiness[key] === undefined && delete localBusiness[key]);
+    Object.keys(localBusiness.address).forEach((key) => localBusiness.address[key] === undefined && delete localBusiness.address[key]);
+    if (Object.keys(localBusiness.address).length === 1) delete localBusiness.address;
+    const schemaJson = JSON.stringify(localBusiness).replace(/</g, '\\u003c');
 
     const statList = [
       ['Premium', 'Design'],
@@ -100,6 +116,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${name} | ${sector}</title>
   <meta name="description" content="${description}" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="${primary}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="${name} | ${sector}" />
+  <meta property="og:description" content="${description}" />
+  <script type="application/ld+json">${schemaJson}</script>
   <style>
     :root {
       --primary: ${primary};
