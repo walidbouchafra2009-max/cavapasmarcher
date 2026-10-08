@@ -28,6 +28,67 @@
     return response.json();
   }
 
+  function openDocumentFromHtml(html, filename) {
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+    if (!win) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  }
+
+  function buildProposalFromProspect(prospect) {
+    const score = Number(prospect.score || prospect.analysis?.score || 0);
+    return {
+      name: prospect.name || 'Prospect',
+      sector: prospect.sector || 'Secteur',
+      city: prospect.city || 'Ville',
+      score
+    };
+  }
+
+  async function generateProposal(prospectId) {
+    const prospects = await fetchProspects();
+    const target = prospects.find((p) => p.id === prospectId);
+    if (!target) return toast('Prospect introuvable.');
+    if (!window.CPMProposalGenerator?.generateProposalHTML) {
+      return toast('Le générateur de proposition est introuvable.');
+    }
+    const payload = buildProposalFromProspect(target);
+    const html = await window.CPMProposalGenerator.generateProposalHTML(payload);
+    openDocumentFromHtml(html, `proposition-${(target.name || 'prospect').replace(/\s+/g, '-').toLowerCase()}.html`);
+    toast('Proposition générée et ouverte.');
+  }
+
+  async function generateContract(prospectId) {
+    const prospects = await fetchProspects();
+    const target = prospects.find((p) => p.id === prospectId);
+    if (!target) return toast('Prospect introuvable.');
+    if (!window.CPMContractGenerator?.generateContractHTML) {
+      return toast('Le générateur de contrat est introuvable.');
+    }
+    const html = await window.CPMContractGenerator.generateContractHTML('draft-contract', target.name || 'Client', target.city || 'Ville');
+    if (html) {
+      openDocumentFromHtml(html, `contrat-${(target.name || 'client').replace(/\s+/g, '-').toLowerCase()}.html`);
+      toast('Contrat généré et ouvert.');
+    }
+  }
+
+  async function generateQuote(prospectId) {
+    if (!window.CPMQuotesManager?.createFromProspect) {
+      return toast('Le gestionnaire de devis est introuvable.');
+    }
+    const quote = await window.CPMQuotesManager.createFromProspect(prospectId);
+    if (quote) {
+      toast('Devis créé avec succès.');
+      await loadAndRender();
+    }
+  }
+
   function renderProspectsPage() {
     const app = document.getElementById('app');
     if (!app) return;
@@ -44,10 +105,10 @@
         <form class="prospect-form" id="prospect-form">
           <div class="prospects-toolbar">
             <strong>Ajouter un prospect</strong>
-            <span class="small-muted">L’analyse de site se fait automatiquement si une URL est fournie.</span>
+            <span class="small-muted">L'analyse de site se fait automatiquement si une URL est fournie.</span>
           </div>
           <div class="prospect-form-grid">
-            <input name="name" placeholder="Nom de l’entreprise" required />
+            <input name="name" placeholder="Nom de l'entreprise" required />
             <input name="sector" placeholder="Secteur" required />
             <input name="country" placeholder="Pays" value="FR" />
             <input name="city" placeholder="Ville" />
@@ -92,7 +153,7 @@
             <strong>Score:</strong> ${Math.round(analysis.score || 0)} / 100<br>
             <strong>Responsive:</strong> ${analysis.responsive ? 'Oui' : 'Non'} · <strong>Contact:</strong> ${analysis.hasContact ? 'Oui' : 'Non'}
           </div>
-        ` : '<div class="prospect-analysis"><strong>Analyse:</strong> aucune analyse pour l’instant.</div>';
+        ` : '<div class="prospect-analysis"><strong>Analyse:</strong> aucune analyse pour l'instant.</div>';
 
         return `
           <article class="prospect-card">
@@ -117,13 +178,16 @@
             <p>${escapeHtml(prospect.notes || 'Aucune note pour le moment.')}</p>
             <div class="prospect-actions">
               <button type="button" class="secondary-btn" data-prospect-analyze="${escapeHtml(prospect.id || '')}">Analyser</button>
+              <button type="button" class="secondary-btn" data-prospect-quote="${escapeHtml(prospect.id || '')}">Devis</button>
+              <button type="button" class="secondary-btn" data-prospect-proposal="${escapeHtml(prospect.id || '')}">Proposition</button>
+              <button type="button" class="secondary-btn" data-prospect-contract="${escapeHtml(prospect.id || '')}">Contrat</button>
               <button type="button" class="secondary-btn" data-prospect-delete="${escapeHtml(prospect.id || '')}">Supprimer</button>
             </div>
           </article>
         `;
       }).join('')}</div>`;
     } catch (error) {
-      root.innerHTML = '<div class="prospect-empty">Impossible de charger les prospects. Vérifiez votre session ou l’API locale.</div>';
+      root.innerHTML = '<div class="prospect-empty">Impossible de charger les prospects. Vérifiez votre session ou l'API locale.</div>';
     }
   }
 
@@ -158,7 +222,7 @@
       await loadAndRender();
       toast('Prospect enregistré.');
     } catch {
-      toast('Échec de l’enregistrement du prospect.');
+      toast('Échec de l'enregistrement du prospect.');
     }
   }
 
@@ -181,7 +245,7 @@
     const prospects = await fetchProspects();
     const target = prospects.find((prospect) => prospect.id === id);
     if (!target || !target.website) {
-      toast('Ajoutez un site web avant d’analyser ce prospect.');
+      toast('Ajoutez un site web avant d'analyser ce prospect.');
       return;
     }
     try {
@@ -199,7 +263,7 @@
       await loadAndRender();
       toast(`Analyse terminée : ${Math.round(result.score || 0)}/100.`);
     } catch {
-      toast('L’analyse du site a échoué.');
+      toast('L'analyse du site a échoué.');
     }
   }
 
@@ -225,6 +289,27 @@
       return;
     }
 
+    const quoteButton = event.target.closest('[data-prospect-quote]');
+    if (quoteButton) {
+      event.preventDefault();
+      await generateQuote(quoteButton.dataset.prospectQuote);
+      return;
+    }
+
+    const proposalButton = event.target.closest('[data-prospect-proposal]');
+    if (proposalButton) {
+      event.preventDefault();
+      await generateProposal(proposalButton.dataset.prospectProposal);
+      return;
+    }
+
+    const contractButton = event.target.closest('[data-prospect-contract]');
+    if (contractButton) {
+      event.preventDefault();
+      await generateContract(contractButton.dataset.prospectContract);
+      return;
+    }
+
     const deleteButton = event.target.closest('[data-prospect-delete]');
     if (deleteButton) {
       event.preventDefault();
@@ -239,7 +324,7 @@
     }
   });
 
-  window.CPMProspectsManager = { render: renderProspectsPage, analyze: analyzeProspect, fetch: fetchProspects };
+  window.CPMProspectsManager = { render: renderProspectsPage, analyze: analyzeProspect, fetch: fetchProspects, generateProposal, generateContract, generateQuote };
   window.addEventListener('cpm:auth-changed', renderProspectsPage);
   window.addEventListener('DOMContentLoaded', renderProspectsPage);
   setTimeout(() => { if (document.getElementById('app')) renderProspectsPage(); }, 250);
