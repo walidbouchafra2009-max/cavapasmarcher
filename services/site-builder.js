@@ -51,11 +51,11 @@
     const showExpertise = !isLanding;
     const showProcess = ['pro', 'ultimate'].includes(planId);
     const showTestimonials = ['medium', 'basic', 'pro', 'ultimate'].includes(planId);
-    const contactEmail = escapeHtml(safeText(project.email, `contact@${String(project.name || 'entreprise').toLowerCase().replace(/[^a-z0-9]/g, '')}.com`));
+    const contactEmail = escapeHtml(safeText(project.email, ''));
     const contactPhone = escapeHtml(safeText(project.phone, ''));
     const contactAddress = escapeHtml(safeText(project.address, city));
     const phoneHref = contactPhone.replace(/[^+0-9]/g, '');
-    const mailHref = `mailto:${contactEmail}`;
+    const mailHref = contactEmail ? `mailto:${contactEmail}` : '#contact-form';
     const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(safeText(project.address, project.city || project.name || ''))}`;
     const objective = escapeHtml(safeText(project.goal, niche.cta || labels.cta));
 
@@ -546,11 +546,11 @@
           <aside class="contact-details">
             <h3>Nous contacter</h3>
             ${contactPhone ? `<a href="tel:${phoneHref}">${contactPhone}</a>` : ''}
-            <a href="${mailHref}">${contactEmail}</a>
+            ${contactEmail ? `<a href="${mailHref}">${contactEmail}</a>` : '<p>Ajoutez une adresse e-mail au brief avant la livraison.</p>'}
             <p>${contactAddress}</p>
             <a href="${mapHref}" target="_blank" rel="noopener">Voir l’itinéraire</a>
           </aside>
-          <form class="contact-form" data-contact-form>
+          <form class="contact-form" id="contact-form" data-contact-form>
             <h3>Parlons de votre besoin</h3>
             <label>Votre nom<input name="name" required autocomplete="name"></label>
             <label>Votre email<input name="email" type="email" required autocomplete="email"></label>
@@ -571,7 +571,9 @@
       const data = new FormData(event.currentTarget);
       const subject = encodeURIComponent('Demande depuis le site — ' + String(data.get('name') || 'nouveau contact'));
       const body = encodeURIComponent('Nom : ' + String(data.get('name') || '') + '\nEmail : ' + String(data.get('email') || '') + '\n\nMessage :\n' + String(data.get('message') || ''));
-      window.location.href = '${mailHref}?subject=' + subject + '&body=' + body;
+      const destination = '${mailHref}';
+      if (!destination.startsWith('mailto:')) return;
+      window.location.href = destination + '?subject=' + subject + '&body=' + body;
     });
   </script>
 </body>

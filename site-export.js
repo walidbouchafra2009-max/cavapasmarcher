@@ -16,12 +16,16 @@
   function exportSite() {
     const generated = current();
     if (!generated?.html) return toast('Générez d’abord un site.');
+    const quality = window.CPMSiteQuality?.validate?.(generated.html);
+    if (quality && !quality.passed) return toast('Export bloqué : complétez les éléments signalés par le contrôle qualité.');
     download(`${slug(generated.project?.name)}.html`, generated.html, 'text/html;charset=utf-8');
     toast('Site HTML téléchargé.');
   }
   function openSite() {
     const generated = current();
     if (!generated?.html) return toast('Générez d’abord un site.');
+    const quality = window.CPMSiteQuality?.validate?.(generated.html);
+    if (quality && !quality.passed) return toast('Complétez le brief avant de livrer ce site.');
     const url = URL.createObjectURL(new Blob([generated.html], { type: 'text/html' }));
     window.open(url, '_blank', 'noopener');
     window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
